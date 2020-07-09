@@ -24,6 +24,7 @@ class HashTable:
         # Your code here
         self.capacity = capacity
         self.data = [None] * capacity
+        self.count = 0
 
 
     def get_num_slots(self):
@@ -47,7 +48,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.count / self.capacity
 
     def fnv1(self, key):
         """
@@ -90,8 +91,34 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        self.data[index] = HashTableEntry(key, value)
+        new_entry = HashTableEntry(key, value)
+        node = self.data[index]
 
+        # check if there is a head node
+        if node is None:
+            self.data[index] = new_entry
+            self.count += 1
+            if self.get_load_factor() > 0.7:
+                self.resize(self.capacity * 2)
+
+        else:
+            # walk the linked list to check for same key
+            cur = self.data[index]
+            while cur:
+                if cur.key == key:
+                    cur.value == value
+                    self.count += 1
+                    if self.get_load_factor() > 0.7:
+                        self.resize(self.capacity * 2)
+                    break
+                # if key's don't match, move the cur pointer to next node
+                elif cur.next:
+                    cur = cur.next
+                else:
+                    cur.next = new_entry
+                    self.count += 1
+                    if self.get_load_factor() > 0.7:
+                        self.resize(self.capacity * 2)
 
     def delete(self, key):
         """
@@ -102,8 +129,43 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        self.put(key, None)
+        index = self.hash_index(key)
+        node = self.data[index]
+        prev = None
+        
+        # if there's no node
+        if node is None:
+            print(f'WARNING! Key is not found')
 
+        # special case: head node 
+        # matching head with no next
+        if node.key == key and node.next is None:
+            self.data[index] = None
+            self.count -= 1
+            if self.get_load_factor() > 0.7:
+                self.resize(self.capacity * 2)
+        # matching head with a next
+        if node.key == key:
+            self.data[index] = node.next
+            self.count -= 1
+            if self.get_load_factor() > 0.7:
+                self.resize(self.capacity * 2)
+        # head doesn't match
+        else:
+            cur = self.data[index]
+            while cur:
+                if cur.key == key:
+                    prev.next = cur.next
+                    cur = None
+                    self.count -= 1
+                    if self.get_load_factor() > 0.7:
+                        self.resize(self.capacity * 2)
+                elif cur.next:
+                    prev = cur
+                    cur = cur.next
+                else:
+                    cur = None
+                    print(f'WARNING! Key is not found')
 
     def get(self, key):
         """
@@ -115,12 +177,17 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        hash_entry = self.data[index]
+        node = self.data[index]
 
-        if hash_entry is not None:
-            return hash_entry.value
-
-        return None
+        if node is not None:
+            cur = self.data[index]
+            while cur:
+                if cur.key == key:
+                    return cur.value
+                else:    
+                    cur = cur.next
+        else:
+            return None
 
     def resize(self, new_capacity):
         """
@@ -129,7 +196,20 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        new_ht = HashTable(new_capacity)
+
+        for i in range(self.capacity):
+            curr_node = self.data[i]
+
+            while curr_node is not None:
+                # new_ht.data.insert(curr_node.key, curr_node.value)
+                # new_ht.data.insert(i, curr_node)
+                new_ht.put(curr_node.key, curr_node.value)
+                curr_node = curr_node.next
+
+        self.data = new_ht.data
+        self.capacity = new_ht.capacity
+
 
 
 
