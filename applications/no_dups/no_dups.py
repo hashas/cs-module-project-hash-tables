@@ -1,7 +1,15 @@
 def no_dups(s):
-    # Your code here
+    
+# Your code here
 
+    counts = {}
 
+    fs = s.split()
+    for c in fs:
+        if c not in counts:
+            counts[c] = 1
+
+    return ' '.join(list(counts.keys()))
 
 if __name__ == "__main__":
     print(no_dups(""))
